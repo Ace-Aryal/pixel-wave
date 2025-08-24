@@ -1,10 +1,10 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-export default function Search() {
+export default function Notifications() {
   return (
     <View>
-      <Text>Search</Text>
+      <Text>Notifications</Text>
     </View>
   );
 }
