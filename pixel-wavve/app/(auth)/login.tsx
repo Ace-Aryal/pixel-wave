@@ -16,7 +16,7 @@ export default function LoginPage() {
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
-        router.replace("/(tabs)/index");
+        router.replace("/");
       }
     } catch (error) {
       console.error("error logging in", error);
