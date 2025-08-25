@@ -11,13 +11,13 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 });
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <ClerkProvider
-        tokenCache={tokenCache}
-        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      >
-        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-          {/* makes status bar text dark */}
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    >
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        {/* makes status bar text dark */}
+        <SafeAreaProvider>
           <StatusBar style="dark" />
           {/* Full background for notch + status */}
           <SafeAreaView
@@ -30,8 +30,8 @@ export default function RootLayout() {
             </Stack>
           </SafeAreaView>
           {/* </View> */}
-        </ConvexProviderWithClerk>
-      </ClerkProvider>
-    </SafeAreaProvider>
+        </SafeAreaProvider>
+      </ConvexProviderWithClerk>
+    </ClerkProvider>
   );
 }
