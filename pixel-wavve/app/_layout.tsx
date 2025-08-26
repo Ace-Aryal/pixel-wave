@@ -5,6 +5,7 @@ import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
+import Toast from "react-native-toast-message";
 import "../global.css";
 const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
   unsavedChangesWarning: false,
@@ -18,6 +19,7 @@ export default function RootLayout() {
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         {/* makes status bar text dark */}
         <SafeAreaProvider>
+          <Toast />
           <StatusBar style="dark" />
           {/* Full background for notch + status */}
           <SafeAreaView

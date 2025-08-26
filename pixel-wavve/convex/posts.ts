@@ -4,9 +4,12 @@ export const generateUploadUrl = mutation({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
+      console.error("Unauthorized");
       throw new Error("Unauthorized");
     }
-    return await ctx.storage.generateUploadUrl();
+    const uploadUrl = await ctx.storage.generateUploadUrl();
+    console.log("upload url", uploadUrl);
+    return uploadUrl;
   },
 });
 
