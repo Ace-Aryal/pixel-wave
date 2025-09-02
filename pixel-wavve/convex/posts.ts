@@ -1,8 +1,13 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
+// we need a uploader url for uploads in convex and expo has built in utilities for that
 export const generateUploadUrl = mutation({
   handler: async (ctx) => {
+    console.log("here in hanlder");
+    console.log("=== Debug Info ===");
+    console.log("Auth object:", ctx.auth);
     const identity = await ctx.auth.getUserIdentity();
+    console.log(identity, "identity");
     if (!identity) {
       console.error("Unauthorized");
       throw new Error("Unauthorized");
@@ -19,15 +24,11 @@ export const createPost = mutation({
     storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthorized");
+    const authCheckRes = await getAuthenticatedUser(ctx);
+    if (!authCheckRes.success) {
+      throw new Error("Unathorized");
     }
-    const currntUser = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-    //
+    const currntUser = authCheckRes.data;
     if (!currntUser) {
       throw new Error("User not found");
     }
@@ -51,3 +52,36 @@ export const createPost = mutation({
     return postId;
   },
 });
+
+export const getFeedsPosts = query({
+  args: {},
+  handler: async (ctx, args) => {
+    try {
+      const authCheckRes = await getAuthenticatedUser(ctx);
+      if (!authCheckRes.success) {
+        throw new Error("Unathorized");
+      }
+    } catch (error) {
+      console.error(error, "error in posts query");
+    }
+  },
+});
+
+export const getAuthenticatedUser = async (ctx: QueryCtx | MutationCtx) => {
+  try {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user?._id) {
+      throw new Error("Unauthorized");
+    }
+    return { success: true, data: user };
+  } catch (error) {
+    return { success: false, error };
+  }
+};

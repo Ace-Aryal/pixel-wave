@@ -65,13 +65,17 @@ export default function Create() {
       Toast.show({
         type: "success",
         text1: "Post created",
+        visibilityTime: 3000,
       });
+      setSelectedImage(null);
+      setCaption("");
       router.push("/(tabs)");
     } catch (error) {
       console.error("Error sharing the post", error);
       Toast.show({
         type: "error",
         text1: "Error sharing the post",
+        visibilityTime: 3000,
       });
     } finally {
       setIsSharing(false);
