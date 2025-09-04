@@ -54,15 +54,48 @@ export const createPost = mutation({
 });
 
 export const getFeedsPosts = query({
-  args: {},
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
     try {
       const authCheckRes = await getAuthenticatedUser(ctx);
-      if (!authCheckRes.success) {
+      if (!authCheckRes.success || !authCheckRes.data) {
         throw new Error("Unathorized");
       }
+      const posts = await ctx.db.query("posts").order("desc").collect();
+      if (posts.length === 0) {
+        return [];
+      }
+      const userId = authCheckRes.data._id;
+      // enhance posts with user
+      const postsWithInfo = await Promise.all(
+        posts.map(async (post) => {
+          const author = await ctx.db
+            .query("users")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", post.userId))
+            .first();
+          const likedPostRes = await ctx.db
+            .query("likes")
+            .withIndex("by_post_and_user", (q) =>
+              q.eq("postId", post._id).eq("userId", userId)
+            )
+            .first();
+          const bookmarkedPostRes = await ctx.db
+            .query("bookmarks")
+            .withIndex("by_both", (q) =>
+              q.eq("userId", userId).eq("postId", post._id)
+            )
+            .first();
+          return {
+            ...post,
+            author,
+            liked: !!likedPostRes,
+            bookmarked: !!bookmarkedPostRes,
+          };
+        })
+      );
+      return { success: true, data: postsWithInfo };
     } catch (error) {
       console.error(error, "error in posts query");
+      return { success: false, error };
     }
   },
 });
