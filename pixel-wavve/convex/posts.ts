@@ -57,13 +57,15 @@ export const getFeedsPosts = query({
   handler: async (ctx) => {
     try {
       const authCheckRes = await getAuthenticatedUser(ctx);
+      console.log(authCheckRes, "auth check");
       if (!authCheckRes.success || !authCheckRes.data) {
         throw new Error("Unathorized");
       }
       const posts = await ctx.db.query("posts").order("desc").collect();
       if (posts.length === 0) {
-        return [];
+        throw new Error("No posts found");
       }
+      console.log("posts", posts);
       const userId = authCheckRes.data._id;
       // enhance posts with user
       const postsWithInfo = await Promise.all(
@@ -92,10 +94,11 @@ export const getFeedsPosts = query({
           };
         })
       );
+      console.log(postsWithInfo, "posts with info");
       return { success: true, data: postsWithInfo };
     } catch (error) {
       console.error(error, "error in posts query");
-      return { success: false, error };
+      return { success: false, error: "Error occured" };
     }
   },
 });
@@ -103,6 +106,7 @@ export const getFeedsPosts = query({
 export const getAuthenticatedUser = async (ctx: QueryCtx | MutationCtx) => {
   try {
     const identity = await ctx.auth.getUserIdentity();
+    console.log(identity, "identity");
     if (!identity) {
       throw new Error("Unauthorized");
     }
@@ -110,7 +114,7 @@ export const getAuthenticatedUser = async (ctx: QueryCtx | MutationCtx) => {
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first();
-    if (!user?._id) {
+    if (!user) {
       throw new Error("Unauthorized");
     }
     return { success: true, data: user };

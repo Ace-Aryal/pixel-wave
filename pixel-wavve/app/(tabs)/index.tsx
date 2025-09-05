@@ -3,6 +3,8 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const stories = [
   {
@@ -68,8 +70,49 @@ const posts = [
 ];
 export default function HomePage() {
   const { signOut } = useAuth();
+
+  const posts = useQuery(api.posts.getFeedsPosts);
+  if (posts === undefined) {
+    return (
+      <View className="p-1 flex-1">
+        <View id="" className="px-2 my-3 flex-row items-center justify-between">
+          <Text className="text-3xl font-medium text-primary">PIXELWAVE</Text>
+          <TouchableOpacity
+            onPress={() => {
+              signOut();
+            }}
+          >
+            <Ionicons name="log-out-outline" size={28} color={"gray"} />
+          </TouchableOpacity>
+        </View>
+        <View className="flex-1 justify-center items-center">
+          <Text>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (!posts || !posts.success || (posts.data && posts.data.length === 0)) {
+    return (
+      <View className="p-1 flex-1">
+        <View id="" className="px-2 my-3 flex-row items-center justify-between">
+          <Text className="text-3xl font-medium text-primary">PIXELWAVE</Text>
+          <TouchableOpacity
+            onPress={() => {
+              signOut();
+            }}
+          >
+            <Ionicons name="log-out-outline" size={28} color={"gray"} />
+          </TouchableOpacity>
+        </View>
+        <View className="flex-1 justify-center items-center">
+          <Text>No posts found</Text>
+        </View>
+      </View>
+    );
+  }
   return (
-    <View className="p-1">
+    <View className="p-1 ">
       <View id="" className="px-2 my-3 flex-row items-center justify-between">
         <Text className="text-3xl font-medium text-primary">PIXELWAVE</Text>
         <TouchableOpacity
@@ -81,14 +124,16 @@ export default function HomePage() {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
+        data={posts.data}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View className="mb-4 ">
-            <Text style={{ fontWeight: "bold" }}>{item.user}</Text>
+          <View className="flex-1 mb-2">
+            <Text className="" style={{ fontWeight: "bold" }}>
+              {item.author?.username ?? ""}
+            </Text>
             <Image
-              source={{ uri: item.photo }}
-              style={{ width: "100%", height: 300 }}
+              source={{ uri: item.imageUrl }}
+              style={{ width: "100%", height: "auto", aspectRatio: 1 }}
             />
           </View>
         )}
